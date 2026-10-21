@@ -1,5 +1,5 @@
 const { timingSafeEqual } = require('node:crypto');
-const { getDatabase } = require('./_firebase');
+const { getDatabase } = require('../lib/firebaseAdmin');
 
 function json(res, status, body) {
   res.status(status).setHeader('Content-Type', 'application/json; charset=utf-8');
