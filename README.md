@@ -4,8 +4,8 @@ Halaman siswa tersedia di `/soal_mana_fungsi.html`. Dashboard hasil guru ada di 
 
 ## Menyiapkan Firebase
 
-1. Buat project di [Firebase Console](https://console.firebase.google.com/) dan aktifkan **Realtime Database**. Pilih lokasi yang dekat dengan siswa.
-2. Di Realtime Database → **Rules**, pasang aturan berikut lalu terbitkan:
+1. Project `kuis-fungsi-kelas8-20261022` dan Realtime Database di Singapura sudah dibuat. URL database: `https://kuis-fungsi-kelas8-20261022-default-rtdb.asia-southeast1.firebasedatabase.app`.
+2. Rules berikut sudah diterbitkan. Aturan ini menolak akses langsung dari browser:
 
    ```json
    {
