@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kuis Daring: Fungsi vs Bukan Fungsi</title>
+    <!-- Memuat Tailwind CSS untuk styling utilitas -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Memuat font Poppins untuk kesan lebih modern dan ramah -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Memuat Feather Icons untuk ikon -->
+    <script src="https://unpkg.com/feather-icons"></script>
+    
+    <style>
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background-color: #f8fafc;
+            overflow-x: hidden;
+        }
+        
+        /* Background Shapes untuk Estetika */
+        .bg-shape-1 {
+            position: fixed; top: -10%; left: -10%; width: 50vw; height: 50vw;
+            border-radius: 50%; background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, rgba(255,255,255,0) 70%);
+            z-index: -1;
+        }
+        .bg-shape-2 {
+            position: fixed; bottom: -10%; right: -5%; width: 60vw; height: 60vw;
+            border-radius: 50%; background: radial-gradient(circle, rgba(236,72,153,0.1) 0%, rgba(255,255,255,0) 70%);
+            z-index: -1;
+        }
+
+        /* Glassmorphism Card Style */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Animasi Transisi Antar Layar */
+        .screen-transition {
+            transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .screen-hidden {
+            opacity: 0; transform: translateY(20px) scale(0.98); pointer-events: none; position: absolute; width: 100%;
+        }
+        .screen-active {
+            opacity: 1; transform: translateY(0) scale(1); position: relative;
+        }
+
+        /* Styling Option (Pilihan Jawaban) */
+        .option-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+        }
+        .option-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.15);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+        .option-input:checked + .option-card {
+            background: linear-gradient(to right, #eff6ff, #f5f3ff);
+            border-color: #6366f1;
+            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.25);
+        }
+        .option-input:checked + .option-card .radio-indicator {
+            background-color: #6366f1; border-color: #6366f1;
+        }
+        .option-input:checked + .option-card .radio-dot {
+            opacity: 1; transform: scale(1);
+        }
+
+        /* Animasi Pop untuk skor */
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            80% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-pop { animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+    </style>
+</head>
+
+<body class="text-slate-800 min-h-screen flex flex-col relative">
+
+    <!-- Ornamen Background -->
+    <div class="bg-shape-1"></div>
+    <div class="bg-shape-2"></div>
+
+    <!-- Header / Navbar -->
+    <header class="w-full pt-6 pb-2 px-4 sm:px-6 lg:px-8 z-10">
+        <div class="max-w-4xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/30">
+                    <i data-feather="book-open" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg md:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 to-purple-600">Matematika Kelas 8</h1>
+                    <p class="text-xs text-slate-500 font-medium tracking-wide uppercase">Relasi & Fungsi</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow w-full max-w-3xl mx-auto px-4 py-8 relative">
+        
+        <!-- ================= START SCREEN ================= -->
+        <div id="start-screen" class="glass-card rounded-3xl p-8 md:p-12 text-center screen-transition screen-active shadow-2xl shadow-indigo-100 mt-4 md:mt-10 border border-white">
+            <div class="relative w-28 h-28 mx-auto mb-8">
+                <div class="absolute inset-0 bg-indigo-500 rounded-full opacity-20 blur-xl animate-pulse"></div>
+                <img src="https://api.dicebear.com/7.x/shapes/svg?seed=math&backgroundColor=transparent" alt="Math Shapes" class="relative w-full h-full transform hover:rotate-12 transition-transform duration-500">
+            </div>
+            
+            <h2 class="text-3xl md:text-4xl font-bold text-slate-800 mb-4 leading-tight">Uji Pemahaman:<br><span class="text-indigo-600">Fungsi & Bukan Fungsi</span></h2>
+            
+            <p class="text-slate-600 mb-10 text-lg leading-relaxed max-w-xl mx-auto">
+                Kuis interaktif ini berisi <strong>20 soal</strong> tentang cara membedakan relasi yang merupakan Fungsi dan Bukan Fungsi. Siapkan dirimu dan pilih jawaban yang paling tepat!
+            </p>
+
+            <div class="max-w-md mx-auto mb-6 text-left grid gap-3">
+                <label class="text-sm font-semibold text-slate-700" for="student-name">Nama lengkap</label>
+                <input id="student-name" maxlength="100" autocomplete="name" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100" placeholder="Nama kamu">
+                <label class="text-sm font-semibold text-slate-700" for="class-name">Kelas</label>
+                <input id="class-name" maxlength="40" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100" placeholder="Contoh: VIII A">
+                <p id="submit-status" role="status" class="text-sm text-rose-600"></p>
+            </div>
+            
+            <button id="start-btn" onclick="startQuiz()" class="group relative inline-flex items-center justify-center gap-3 px-8 py-4 bg-slate-900 text-white font-semibold rounded-2xl overflow-hidden transition-all hover:bg-slate-800 hover:shadow-xl hover:shadow-slate-900/20 active:scale-95">
+                <span class="absolute w-0 h-0 transition-all duration-500 ease-out bg-indigo-600 rounded-full group-hover:w-56 group-hover:h-56"></span>
+                <span class="relative flex items-center gap-2">Mulai Kuis Sekarang <i data-feather="arrow-right" class="w-5 h-5"></i></span>
+            </button>
+        </div>
+
+        <!-- ================= QUIZ SCREEN ================= -->
+        <div id="quiz-screen" class="screen-transition screen-hidden w-full">
+            
+            <!-- Progress Tracker -->
+            <div class="mb-6 px-2">
+                <div class="flex justify-between items-end mb-2">
+                    <div class="text-sm font-bold text-indigo-600 uppercase tracking-wider" id="progress-text">Soal 1 / 20</div>
+                    <div class="text-xs font-medium text-slate-400 bg-white px-3 py-1 rounded-full shadow-sm border border-slate-100" id="completion-text">0% Selesai</div>
+                </div>
+                <div class="w-full bg-slate-200/60 rounded-full h-2 overflow-hidden shadow-inner">
+                    <div id="progress-bar" class="bg-gradient-to-r from-indigo-500 to-purple-500 h-full rounded-full transition-all duration-500 ease-out w-0"></div>
+                </div>
+            </div>
+
+            <!-- Question Card -->
+            <div class="glass-card rounded-3xl overflow-hidden border border-white">
+                <div class="p-6 md:p-10 relative">
+                    <!-- Badge Kategori -->
+                    <div class="absolute top-0 right-0 bg-gradient-to-bl from-indigo-500 to-indigo-600 text-white text-xs font-bold px-4 py-2 rounded-bl-xl rounded-tr-3xl shadow-md">
+                        PILIHAN GANDA
+                    </div>
+                    
+                    <h3 id="question-text" class="text-lg md:text-xl font-medium text-slate-800 mb-8 mt-2 leading-relaxed">
+                        <!-- Teks soal dimuat di sini -->
+                    </h3>
+
+                    <!-- Opsi Jawaban -->
+                    <div id="options-container" class="space-y-4">
+                        <!-- Opsi digenerate via JS -->
+                    </div>
+                </div>
+                
+                <!-- Navigasi Bawah -->
+                <p id="submit-error" role="status" class="px-6 pb-2 text-sm text-rose-600"></p>
+                <div class="bg-slate-50/80 backdrop-blur-sm border-t border-slate-100 px-6 py-5 flex items-center justify-between">
+                    <button id="prev-btn" onclick="prevQuestion()" class="flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 hover:text-indigo-600 transition-all disabled:opacity-0 disabled:pointer-events-none shadow-sm">
+                        <i data-feather="chevron-left" class="w-4 h-4"></i> Kembali
+                    </button>
+                    
+                    <button id="next-btn" onclick="nextQuestion()" class="flex items-center gap-2 px-6 py-2.5 rounded-xl font-semibold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md hover:shadow-indigo-600/30 transition-all ml-auto">
+                        Lanjut <i data-feather="chevron-right" class="w-4 h-4"></i>
+                    </button>
+                    
+                    <button id="submit-btn" onclick="submitQuiz()" class="hidden items-center gap-2 px-6 py-2.5 rounded-xl font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-md hover:shadow-emerald-500/30 transition-all ml-auto animate-pulse">
+                        <i data-feather="check-circle" class="w-4 h-4"></i> Kumpulkan
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= RESULT SCREEN ================= -->
+        <div id="result-screen" class="screen-transition screen-hidden w-full">
+            <div class="glass-card rounded-3xl p-8 md:p-12 text-center border border-white mb-8 relative overflow-hidden">
+                <!-- Confetti Effect Background (Simple CSS implementation) -->
+                <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(#6366f1 1px, transparent 1px); background-size: 20px 20px;"></div>
+                
+                <h2 class="text-3xl font-bold text-slate-800 mb-2">Evaluasi Selesai!</h2>
+                <p class="text-slate-500 mb-8 font-medium">Berikut adalah hasil pemahamanmu tentang materi Fungsi.</p>
+                
+                <!-- Score Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-10">
+                    <div class="bg-gradient-to-br from-indigo-50 to-white rounded-2xl p-6 border border-indigo-100 shadow-sm md:col-span-1 flex flex-col justify-center animate-pop">
+                        <div class="text-sm font-bold text-indigo-400 uppercase tracking-wider mb-2">Skor Akhir</div>
+                        <div class="flex items-baseline justify-center gap-1">
+                            <span id="final-score" class="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">0</span>
+                            <span class="text-xl font-medium text-slate-400">/ 100</span>
+                        </div>
+                    </div>
+                    
+                    <div class="md:col-span-2 grid grid-cols-2 gap-4">
+                        <div class="bg-emerald-50/50 rounded-2xl p-5 border border-emerald-100 flex flex-col items-center justify-center shadow-sm">
+                            <div class="w-10 h-10 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mb-3">
+                                <i data-feather="check" class="w-6 h-6"></i>
+                            </div>
+                            <span class="text-2xl font-bold text-emerald-700" id="correct-count">0</span>
+                            <span class="text-xs font-medium text-emerald-600/70 uppercase mt-1">Jawaban Benar</span>
+                        </div>
+                        <div class="bg-rose-50/50 rounded-2xl p-5 border border-rose-100 flex flex-col items-center justify-center shadow-sm">
+                            <div class="w-10 h-10 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center mb-3">
+                                <i data-feather="x" class="w-6 h-6"></i>
+                            </div>
+                            <span class="text-2xl font-bold text-rose-700" id="wrong-count">0</span>
+                            <span class="text-xs font-medium text-rose-600/70 uppercase mt-1">Jawaban Salah</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="location.reload()" class="inline-flex items-center gap-2 px-8 py-3.5 bg-slate-800 text-white font-semibold rounded-xl hover:bg-slate-900 shadow-lg hover:shadow-slate-900/20 transition-all active:scale-95">
+                    <i data-feather="rotate-cw" class="w-4 h-4"></i> Coba Kuis Lagi
+                </button>
+            </div>
+
+            <!-- Review Section -->
+            <div class="mb-20">
+                <div class="flex items-center gap-3 mb-6 px-2">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center">
+                        <i data-feather="file-text" class="w-4 h-4"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800">Pembahasan Detail</h3>
+                </div>
+                <div id="review-container" class="space-y-5">
+                    <!-- Review cards generated by JS -->
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // Inisialisasi Feather Icons
+        feather.replace();
+
+        // Data Soal (DIPERTAHANKAN SESUAI PERMINTAAN)
+        const quizData = [
+            {
+                question: "Diberikan himpunan pasangan berurutan: {(1, 2), (2, 3), (3, 4), (4, 5)}. Apakah relasi tersebut merupakan suatu fungsi?",
+                options: [
+                    "Fungsi, karena setiap nilai x (domain) memiliki tepat satu pasangan nilai y.",
+                    "Fungsi, karena nilai x dan y selalu berurutan.",
+                    "Bukan fungsi, karena tidak ada angka yang berulang.",
+                    "Bukan fungsi, karena nilai y lebih besar dari nilai x."
+                ],
+                correct: 0,
+                explanation: "Domain (daerah asal) adalah {1, 2, 3, 4}. Karena setiap anggota domain muncul tepat satu kali dan berpasangan dengan satu nilai y, maka relasi ini adalah FUNGSI."
+            },
+            {
+                question: "Perhatikan himpunan pasangan berurutan berikut: {(1, 2), (1, 3), (2, 4), (3, 5)}. Apakah relasi ini sebuah fungsi?",
+                options: [
+                    "Fungsi, karena semua angka bernilai positif.",
+                    "Fungsi, karena setiap anggota kodomain dipasangkan.",
+                    "Bukan fungsi, karena angka 1 pada daerah asal (x) memiliki dua pasangan yaitu 2 dan 3.",
+                    "Bukan fungsi, karena jumlah pasangannya genap."
+                ],
+                correct: 2,
+                explanation: "Syarat fungsi adalah daerah asal (x) tidak boleh bercabang. Di sini, x=1 berpasangan dengan 2 dan 3, sehingga BUKAN FUNGSI."
+            },
+            {
+                question: "Manakah dari himpunan pasangan berurutan berikut ini yang BUKAN merupakan fungsi?",
+                options: [
+                    "{(A, 1), (B, 2), (C, 3)}",
+                    "{(1, A), (2, A), (3, A)}",
+                    "{(1, 1), (2, 2), (3, 3)}",
+                    "{(1, A), (1, B), (2, C)}"
+                ],
+                correct: 3,
+                explanation: "Pada {(1, A), (1, B), (2, C)}, elemen '1' pada domain memiliki dua pasangan (A dan B). Oleh karena itu, ini BUKAN fungsi."
+            },
+            {
+                question: "Sebuah relasi disajikan dalam tabel berikut:<br><div class='font-mono bg-indigo-50 border border-indigo-100 p-4 rounded-xl mt-4 text-sm text-center shadow-inner'><div class='flex justify-center gap-4'><div class='text-right border-r pr-4 border-indigo-200 font-bold'>x<br>y</div><div class='flex gap-6'><div>1<br>5</div><div>2<br>5</div><div>3<br>5</div></div></div></div><br>Apakah relasi dari x ke y ini merupakan fungsi?",
+                options: [
+                    "Bukan fungsi, karena nilai y selalu sama.",
+                    "Bukan fungsi, karena tidak ada variasi pada hasil output.",
+                    "Fungsi, karena setiap nilai x yang berbeda dipasangkan dengan tepat satu nilai y.",
+                    "Fungsi, karena jumlah x dan y sama banyak."
+                ],
+                correct: 2,
+                explanation: "Ini adalah Fungsi (Fungsi Konstan). Tidak masalah jika nilai y (hasil) sama, yang penting setiap input x (1, 2, dan 3) hanya menunjuk pada satu nilai y."
+            },
+            {
+                question: "Perhatikan tabel relasi berikut:<br><div class='font-mono bg-indigo-50 border border-indigo-100 p-4 rounded-xl mt-4 text-sm text-center shadow-inner'><div class='flex justify-center gap-4'><div class='text-right border-r pr-4 border-indigo-200 font-bold'>x<br>y</div><div class='flex gap-6'><div>1<br>3</div><div>1<br>4</div><div>2<br>5</div></div></div></div><br>Kesimpulan yang tepat dari tabel di atas adalah...",
+                options: [
+                    "Merupakan fungsi, karena angkanya berurutan.",
+                    "Bukan fungsi, karena nilai x = 1 memiliki dua hasil y yang berbeda (3 dan 4).",
+                    "Merupakan fungsi, karena setiap kotak terisi penuh.",
+                    "Bukan fungsi, karena jumlah x dan y ganjil."
+                ],
+                correct: 1,
+                explanation: "Tabel tersebut menunjukkan input x=1 menghasilkan y=3 dan y=4. Karena satu input memiliki lebih dari satu output (bercabang), maka relasi ini BUKAN fungsi."
+            },
+            {
+                question: "Diketahui letak 3 titik pada diagram kartesius: A(1, 1), B(2, 1), dan C(3, 1). Apakah himpunan titik-titik tersebut membentuk suatu fungsi?",
+                options: [
+                    "Fungsi, karena tidak ada nilai x (absis) yang digunakan lebih dari satu kali.",
+                    "Fungsi, karena membentuk garis vertikal.",
+                    "Bukan fungsi, karena semua titik memiliki nilai y yang sama.",
+                    "Bukan fungsi, karena titik-titiknya sejajar."
+                ],
+                correct: 0,
+                explanation: "Domain (x) adalah {1, 2, 3} dan semuanya berbeda. Meski nilai y semuanya 1 (membentuk garis horizontal), syarat fungsi tetap terpenuhi."
+            },
+            {
+                question: "Pada diagram kartesius, terdapat titik-titik (1, 1), (1, 2), dan (1, 3). Relasi himpunan titik-titik ini adalah...",
+                options: [
+                    "Fungsi, karena jarak antar titik sama.",
+                    "Fungsi, karena polanya berurutan.",
+                    "Bukan fungsi, karena nilai x=1 memiliki tiga nilai y yang berbeda.",
+                    "Bukan fungsi, karena nilai y tidak boleh lebih besar dari x."
+                ],
+                correct: 2,
+                explanation: "Titik-titik tersebut terletak pada satu garis vertikal (tegak lurus sumbu X). Artinya, satu nilai x=1 berpasangan dengan y=1, 2, dan 3. Ini BUKAN fungsi."
+            },
+            {
+                question: "Diberikan himpunan pasangan berurutan: {(a, 1), (b, 2), (c, 3), (d, 4)}. Pernyataan yang benar adalah...",
+                options: [
+                    "Relasi ini BUKAN fungsi karena menggunakan huruf.",
+                    "Relasi ini adalah FUNGSI karena setiap anggota depan (huruf) berbeda dan memiliki tepat satu pasangan angka.",
+                    "Relasi ini BUKAN fungsi karena ada 4 pasangan.",
+                    "Tidak dapat ditentukan."
+                ],
+                correct: 1,
+                explanation: "Domain adalah {a, b, c, d}. Karena tidak ada anggota domain yang berulang, relasi ini pasti merupakan FUNGSI."
+            },
+            {
+                question: "Himpunan pasangan berurutan {(p, 1), (q, 1), (p, 2), (r, 3)} merupakan...",
+                options: [
+                    "Fungsi",
+                    "Bukan Fungsi",
+                    "Fungsi linear",
+                    "Fungsi kuadrat"
+                ],
+                correct: 1,
+                explanation: "Bukan fungsi karena elemen 'p' pada domain memiliki dua pasangan yang berbeda yaitu 1 dan 2."
+            },
+            {
+                question: "Dari keempat himpunan pasangan berurutan berikut, manakah yang merupakan FUNGSI?",
+                options: [
+                    "{(2, 4), (2, 5), (2, 6)}",
+                    "{(1, a), (2, a), (3, a)}",
+                    "{(a, 1), (b, 2), (a, 3)}",
+                    "{(x, 1), (x, 2), (y, 1)}"
+                ],
+                correct: 1,
+                explanation: "Hanya {(1, a), (2, a), (3, a)} yang nilai awalnya/domain (1, 2, 3) tidak ada yang berulang. Sisanya memiliki elemen domain yang berulang/bercabang."
+            },
+            {
+                question: "Sebuah data disajikan dalam tabel:<br><div class='font-mono bg-indigo-50 border border-indigo-100 p-4 rounded-xl mt-4 text-sm text-center shadow-inner'><div class='flex justify-center gap-4'><div class='text-right border-r pr-4 border-indigo-200 font-bold'>x<br>y</div><div class='flex gap-6'><div>2<br>1</div><div>4<br>2</div><div>6<br>3</div><div>8<br>4</div></div></div></div><br>Apakah relasi ini fungsi?",
+                options: [
+                    "Ya, ini fungsi, karena setiap nilai x hanya memiliki satu pasangan nilai y.",
+                    "Tidak, ini bukan fungsi, karena nilai x selalu genap.",
+                    "Ya, ini fungsi, karena ada pola dibagi 2.",
+                    "Tidak, ini bukan fungsi, karena tidak ada angka ganjil di x."
+                ],
+                correct: 0,
+                explanation: "Syarat penentu fungsi pada tabel adalah memeriksa baris 'x'. Jika semua nilai 'x' berbeda (2, 4, 6, 8), maka tabel tersebut pasti merupakan fungsi. Pola rumusnya adalah f(x) = x/2."
+            },
+            {
+                question: "Perhatikan tabel berikut:<br><div class='font-mono bg-indigo-50 border border-indigo-100 p-4 rounded-xl mt-4 text-sm text-center shadow-inner'><div class='flex justify-center gap-4'><div class='text-right border-r pr-4 border-indigo-200 font-bold'>x<br>y</div><div class='flex gap-6'><div>2<br>1</div><div>4<br>2</div><div>2<br>3</div><div>8<br>4</div></div></div></div><br>Relasi pada tabel tersebut adalah...",
+                options: [
+                    "Fungsi",
+                    "Bukan Fungsi",
+                    "Korespondensi satu-satu",
+                    "Fungsi Identitas"
+                ],
+                correct: 1,
+                explanation: "BUKAN fungsi, karena pada baris 'x' angka 2 muncul dua kali (berpasangan dengan y=1 dan y=3)."
+            },
+            {
+                question: "Sebuah grafik pada diagram kartesius memuat titik-titik (0, 0), (1, 1), (2, 4), dan (3, 9). Apakah grafik ini fungsi?",
+                options: [
+                    "Bukan fungsi, karena nilai y meningkat terlalu cepat.",
+                    "Bukan fungsi, karena grafiknya melengkung.",
+                    "Fungsi, karena setiap titik x memiliki nilai y yang unik (tidak ada titik yang sejajar vertikal).",
+                    "Fungsi, karena melewati titik (0,0)."
+                ],
+                correct: 2,
+                explanation: "Domain (x) = {0, 1, 2, 3}. Tidak ada nilai x yang sama. Jika ditarik garis vertikal, tidak ada titik yang bertumpuk atas-bawah. Maka ini FUNGSI (tepatnya fungsi kuadrat y=x²)."
+            },
+            {
+                question: "Jika diplot pada bidang kartesius, himpunan titik (0, 0), (1, 1), (1, -1), dan (4, 2) akan membentuk suatu kurva. Apakah relasi ini merupakan fungsi?",
+                options: [
+                    "Ya, karena polanya simetris.",
+                    "Ya, karena jumlah titiknya genap.",
+                    "Tidak, karena ada dua titik yang memiliki absis (x) yang sama yaitu (1, 1) dan (1, -1).",
+                    "Tidak, karena ada nilai y yang negatif."
+                ],
+                correct: 2,
+                explanation: "Satu nilai x yaitu 1, menghasilkan y=1 dan y=-1. Jika digambar, titiknya bertumpuk secara vertikal. Karena bercabang, maka BUKAN fungsi."
+            },
+            {
+                question: "Himpunan {(p, x), (q, y), (r, z), (p, w)} jika dianalisis merupakan...",
+                options: [
+                    "Bukan Fungsi, karena p dipasangkan dengan x sekaligus w.",
+                    "Bukan Fungsi, karena huruf tidak bisa dihitung.",
+                    "Fungsi, karena setiap huruf depan memiliki pasangan.",
+                    "Fungsi, karena menggunakan 4 huruf berbeda di belakang."
+                ],
+                correct: 0,
+                explanation: "Elemen domain 'p' berpasangan ganda (bercabang) dengan 'x' dan 'w'. Syarat fungsi tidak terpenuhi."
+            },
+            {
+                question: "Diberikan tabel data berat badan:<br><div class='font-mono bg-indigo-50 border border-indigo-100 p-4 rounded-xl mt-4 text-sm text-center shadow-inner'><div class='flex justify-center gap-4'><div class='text-right border-r pr-4 border-indigo-200 font-bold'>No (x)<br>Berat (y)</div><div class='flex gap-6'><div>10<br>45</div><div>20<br>45</div><div>30<br>45</div></div></div></div><br>Apakah relasi Absen ke Berat ini fungsi?",
+                options: [
+                    "Bukan, karena semua siswa memiliki berat 45.",
+                    "Fungsi, karena setiap nomor absen merujuk pada satu orang dengan satu berat badan tertentu.",
+                    "Bukan, karena nomor absennya lompat 10.",
+                    "Fungsi, asalkan nanti ada berat yang berbeda."
+                ],
+                correct: 1,
+                explanation: "Fungsi! Nilai x (10, 20, 30) tidak ada yang berulang. Tidak masalah jika hasilnya (y=45) sama, karena tiap siswa (x) hanya diukur satu kali."
+            },
+            {
+                question: "Koordinat titik (-1, 2), (0, 3), (1, 2), dan (2, 5) disajikan dalam diagram kartesius. Apakah himpunan titik ini disebut fungsi?",
+                options: [
+                    "Bukan fungsi, karena y=2 muncul dua kali pada x=-1 dan x=1.",
+                    "Fungsi, karena setiap nilai x (-1, 0, 1, 2) semuanya berbeda dan masing-masing menunjuk satu nilai y.",
+                    "Bukan fungsi, karena ada nilai x yang negatif.",
+                    "Fungsi, karena jumlah titik x dan y seimbang."
+                ],
+                correct: 1,
+                explanation: "FUNGSI. Nilai x tidak berulang. Munculnya y=2 dua kali tidak melanggar aturan fungsi (hanya tidak memenuhi syarat korespondensi satu-satu)."
+            },
+            {
+                question: "Pada diagram kartesius, terdapat sebuah garis lurus vertikal (tegak) yang sejajar dengan sumbu Y pada posisi x = 3. Apakah garis vertikal ini merupakan grafik sebuah fungsi?",
+                options: [
+                    "Ya, karena berupa garis lurus.",
+                    "Ya, karena melewati sumbu X tepat satu kali.",
+                    "Bukan, karena garis vertikal berarti satu nilai x (yakni 3) memiliki tak terhingga banyak pasangan nilai y.",
+                    "Bukan, karena tidak melewati titik (0,0)."
+                ],
+                correct: 2,
+                explanation: "Garis vertikal BUKAN fungsi. Hal ini melanggar 'Uji Garis Vertikal' (Vertical Line Test), karena pada x=3, ia berpasangan dengan semua nilai y (bercabang sangat banyak)."
+            },
+            {
+                question: "Sebaliknya, pada diagram kartesius terdapat garis lurus horizontal (mendatar) sejajar sumbu X pada posisi y = 2. Apakah garis horizontal ini sebuah fungsi?",
+                options: [
+                    "Ya, karena setiap titik x pada garis tersebut hanya menunjuk tepat pada satu titik y (yaitu 2).",
+                    "Bukan, karena semua nilainya sama (2).",
+                    "Ya, namun hanya berlaku untuk x positif.",
+                    "Bukan, karena tidak memotong sumbu X."
+                ],
+                correct: 0,
+                explanation: "Garis horizontal adalah FUNGSI (disebut fungsi konstan). Setiap x di sepanjang sumbu X hanya menunjuk pada satu nilai y (yakni 2), tidak ada x yang memiliki lebih dari satu y."
+            },
+            {
+                question: "Trik paling cepat (kesimpulan) untuk melihat apakah Himpunan Pasangan Berurutan atau Tabel merupakan FUNGSI adalah...",
+                options: [
+                    "Memastikan nilai y (angka belakang) tidak ada yang kembar.",
+                    "Memastikan nilai x (angka depan) dan y sama banyak.",
+                    "Memastikan nilai x (angka depan) tidak ada yang ditulis berulang dengan pasangan berbeda.",
+                    "Memastikan urutan bilangannya dari kecil ke besar."
+                ],
+                correct: 2,
+                explanation: "Aturan emas: Cek saja nilai x (domain / bagian depan). Selama nilai x tidak ada yang diulang, relasi tersebut PASTI merupakan FUNGSI."
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let userAnswers = new Array(quizData.length).fill(null);
+        const attemptId = crypto.randomUUID();
+        let studentName = '';
+        let className = '';
+
+        // Fungsi Transisi Layar
+        function showScreen(screenId) {
+            ['start-screen', 'quiz-screen', 'result-screen'].forEach(id => {
+                const el = document.getElementById(id);
+                if (id === screenId) {
+                    el.classList.remove('screen-hidden');
+                    el.classList.add('screen-active');
+                } else {
+                    el.classList.remove('screen-active');
+                    el.classList.add('screen-hidden');
+                }
+            });
+        }
+
+        function startQuiz() {
+            studentName = document.getElementById('student-name').value.trim();
+            className = document.getElementById('class-name').value.trim();
+            const status = document.getElementById('submit-status');
+            if (!studentName || !className) {
+                status.textContent = 'Isi nama dan kelas sebelum memulai.';
+                return;
+            }
+            status.textContent = '';
+            showScreen('quiz-screen');
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const data = quizData[currentQuestionIndex];
+            
+            // Update Text Soal (dengan sedikit animasi fade)
+            const qText = document.getElementById('question-text');
+            qText.style.opacity = '0';
+            setTimeout(() => {
+                qText.innerHTML = data.question;
+                qText.style.opacity = '1';
+                qText.style.transition = 'opacity 0.3s';
+            }, 150);
+
+            // Update Progress
+            const progressNum = currentQuestionIndex + 1;
+            const progressPercent = (progressNum / quizData.length) * 100;
+            document.getElementById('progress-text').textContent = `Soal ${progressNum} dari ${quizData.length}`;
+            document.getElementById('progress-bar').style.width = `${progressPercent}%`;
+            
+            // Hitung completion berdasarkan soal terjawab
+            const answeredCount = userAnswers.filter(a => a !== null).length;
+            const completionPercent = Math.round((answeredCount / quizData.length) * 100);
+            document.getElementById('completion-text').textContent = `${completionPercent}% Terjawab`;
+
+            // Generate Opsi
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            
+            data.options.forEach((opt, idx) => {
+                const isSelected = userAnswers[currentQuestionIndex] === idx;
+                const letter = String.fromCharCode(65 + idx); // A, B, C, D
+                
+                const label = document.createElement('label');
+                label.className = "block relative cursor-pointer group";
+                label.innerHTML = `
+                    <input type="radio" name="quiz_opt" class="option-input sr-only" value="${idx}" ${isSelected ? 'checked' : ''} onchange="selectOption(${idx})">
+                    <div class="option-card bg-white p-4 md:p-5 rounded-2xl flex items-start gap-4">
+                        <div class="radio-indicator flex-shrink-0 mt-0.5 w-6 h-6 rounded-full border-2 border-slate-300 flex items-center justify-center transition-colors bg-white">
+                            <div class="radio-dot w-2 h-2 rounded-full bg-white opacity-0 transform scale-0 transition-all duration-200"></div>
+                        </div>
+                        <div class="flex-grow">
+                            <span class="font-bold text-slate-400 group-hover:text-indigo-500 mr-2 transition-colors">${letter}.</span>
+                            <span class="text-slate-700 text-sm md:text-base">${opt}</span>
+                        </div>
+                    </div>
+                `;
+                optionsContainer.appendChild(label);
+            });
+
+            updateNavButtons();
+        }
+
+        function selectOption(idx) {
+            userAnswers[currentQuestionIndex] = idx;
+            // Update completion text langsung
+            const answeredCount = userAnswers.filter(a => a !== null).length;
+            const completionPercent = Math.round((answeredCount / quizData.length) * 100);
+            document.getElementById('completion-text').textContent = `${completionPercent}% Terjawab`;
+            
+            updateNavButtons();
+            
+            // Optional: Auto next setelah delay singkat untuk UX yang lebih cepat
+            // if(currentQuestionIndex < quizData.length - 1) {
+            //     setTimeout(nextQuestion, 500);
+            // }
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < quizData.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion();
+            }
+        }
+
+        function updateNavButtons() {
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const submitBtn = document.getElementById('submit-btn');
+
+            prevBtn.disabled = currentQuestionIndex === 0;
+
+            if (currentQuestionIndex === quizData.length - 1) {
+                nextBtn.classList.add('hidden');
+                submitBtn.classList.remove('hidden');
+                submitBtn.style.display = 'flex';
+                
+                // Ganti style submit jika semua terisi
+                if (userAnswers.every(a => a !== null)) {
+                    submitBtn.classList.add('animate-none', 'ring-4', 'ring-emerald-500/30');
+                } else {
+                    submitBtn.classList.remove('ring-4');
+                }
+            } else {
+                nextBtn.classList.remove('hidden');
+                submitBtn.classList.add('hidden');
+                submitBtn.style.display = 'none';
+            }
+            feather.replace();
+        }
+
+        async function submitQuiz() {
+            const unanswered = userAnswers.filter(a => a === null).length;
+            if (unanswered > 0) {
+                if (!confirm(`Terdapat ${unanswered} soal yang belum dijawab. Tetap kumpulkan?`)) {
+                    return;
+                }
+            }
+
+            const submitButton = document.getElementById('submit-btn');
+            const status = document.getElementById('submit-error');
+            submitButton.disabled = true;
+            submitButton.innerHTML = 'Mengirim jawaban…';
+            try {
+                const response = await fetch('/api/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ attemptId, studentName, className, answers: userAnswers })
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error || 'Jawaban belum berhasil dikirim.');
+                calculateResult();
+                showScreen('result-screen');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch (error) {
+                status.textContent = `${error.message} Periksa koneksi internet lalu coba kumpulkan lagi.`;
+                submitButton.disabled = false;
+                submitButton.innerHTML = '<i data-feather="check-circle" class="w-4 h-4"></i> Coba Kirim Lagi';
+                feather.replace();
+            }
+        }
+
+        function calculateResult() {
+            let correct = 0;
+            const reviewContainer = document.getElementById('review-container');
+            reviewContainer.innerHTML = '';
+
+            quizData.forEach((q, i) => {
+                const userAns = userAnswers[i];
+                const isCorrect = userAns === q.correct;
+                if (isCorrect) correct++;
+
+                const card = document.createElement('div');
+                card.className = "bg-white p-5 md:p-6 rounded-2xl border border-slate-100 shadow-sm relative overflow-hidden";
+                
+                // Dekorasi sisi kiri (garis warna)
+                const sideBar = document.createElement('div');
+                sideBar.className = `absolute left-0 top-0 bottom-0 w-1.5 ${isCorrect ? 'bg-emerald-500' : 'bg-rose-500'}`;
+                card.appendChild(sideBar);
+
+                const statusBadge = isCorrect 
+                    ? `<span class="bg-emerald-100 text-emerald-700 text-xs font-bold px-2.5 py-1 rounded-md flex items-center gap-1"><i data-feather="check" class="w-3 h-3"></i> BENAR</span>`
+                    : `<span class="bg-rose-100 text-rose-700 text-xs font-bold px-2.5 py-1 rounded-md flex items-center gap-1"><i data-feather="x" class="w-3 h-3"></i> SALAH</span>`;
+
+                const userAnswerText = userAns !== null ? q.options[userAns] : "<i>(Kosong / Tidak dijawab)</i>";
+
+                card.innerHTML += `
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="text-sm font-bold text-slate-400">SOAL ${i + 1}</div>
+                        ${statusBadge}
+                    </div>
+                    <p class="text-slate-800 font-medium mb-4 text-sm leading-relaxed">${q.question}</p>
+                    
+                    <div class="space-y-2 text-sm bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        ${!isCorrect ? `<div class="text-rose-600 pb-2 border-b border-rose-100"><span class="font-semibold block text-xs text-rose-400 uppercase tracking-wide mb-0.5">Jawabanmu:</span> ${userAnswerText}</div>` : ''}
+                        <div class="text-emerald-600 pt-1"><span class="font-semibold block text-xs text-emerald-400 uppercase tracking-wide mb-0.5">Kunci Jawaban:</span> ${q.options[q.correct]}</div>
+                    </div>
+                    
+                    <div class="mt-4 pt-4 border-t border-slate-100">
+                        <div class="flex items-start gap-2 text-indigo-700 bg-indigo-50/50 p-3 rounded-xl border border-indigo-100/50 text-sm">
+                            <i data-feather="info" class="w-4 h-4 mt-0.5 flex-shrink-0 text-indigo-500"></i>
+                            <div>
+                                <span class="font-semibold block mb-0.5 text-xs text-indigo-400 uppercase tracking-wide">Penjelasan:</span>
+                                ${q.explanation}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                reviewContainer.appendChild(card);
+            });
+
+            // Update Score Board
+            const score = Math.round((correct / quizData.length) * 100);
+            animateValue("final-score", 0, score, 1500);
+            document.getElementById('correct-count').textContent = correct;
+            document.getElementById('wrong-count').textContent = quizData.length - correct;
+            
+            // Re-render icons on new DOM elements
+            feather.replace();
+        }
+
+        // Animasi counter untuk skor
+        function animateValue(id, start, end, duration) {
+            const obj = document.getElementById(id);
+            if (start === end) { obj.innerHTML = end; return; }
+            let range = end - start;
+            let current = start;
+            let increment = end > start ? 1 : -1;
+            let stepTime = Math.abs(Math.floor(duration / range));
+            let timer = setInterval(function() {
+                current += increment;
+                obj.innerHTML = current;
+                if (current == end) clearInterval(timer);
+            }, stepTime);
+        }
+    </script>
+</body>
+</html>

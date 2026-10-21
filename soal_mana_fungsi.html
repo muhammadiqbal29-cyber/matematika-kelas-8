@@ -118,8 +118,16 @@
             <p class="text-slate-600 mb-10 text-lg leading-relaxed max-w-xl mx-auto">
                 Kuis interaktif ini berisi <strong>20 soal</strong> tentang cara membedakan relasi yang merupakan Fungsi dan Bukan Fungsi. Siapkan dirimu dan pilih jawaban yang paling tepat!
             </p>
+
+            <div class="max-w-md mx-auto mb-6 text-left grid gap-3">
+                <label class="text-sm font-semibold text-slate-700" for="student-name">Nama lengkap</label>
+                <input id="student-name" maxlength="100" autocomplete="name" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100" placeholder="Nama kamu">
+                <label class="text-sm font-semibold text-slate-700" for="class-name">Kelas</label>
+                <input id="class-name" maxlength="40" class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100" placeholder="Contoh: VIII A">
+                <p id="submit-status" role="status" class="text-sm text-rose-600"></p>
+            </div>
             
-            <button onclick="startQuiz()" class="group relative inline-flex items-center justify-center gap-3 px-8 py-4 bg-slate-900 text-white font-semibold rounded-2xl overflow-hidden transition-all hover:bg-slate-800 hover:shadow-xl hover:shadow-slate-900/20 active:scale-95">
+            <button id="start-btn" onclick="startQuiz()" class="group relative inline-flex items-center justify-center gap-3 px-8 py-4 bg-slate-900 text-white font-semibold rounded-2xl overflow-hidden transition-all hover:bg-slate-800 hover:shadow-xl hover:shadow-slate-900/20 active:scale-95">
                 <span class="absolute w-0 h-0 transition-all duration-500 ease-out bg-indigo-600 rounded-full group-hover:w-56 group-hover:h-56"></span>
                 <span class="relative flex items-center gap-2">Mulai Kuis Sekarang <i data-feather="arrow-right" class="w-5 h-5"></i></span>
             </button>
@@ -158,6 +166,7 @@
                 </div>
                 
                 <!-- Navigasi Bawah -->
+                <p id="submit-error" role="status" class="px-6 pb-2 text-sm text-rose-600"></p>
                 <div class="bg-slate-50/80 backdrop-blur-sm border-t border-slate-100 px-6 py-5 flex items-center justify-between">
                     <button id="prev-btn" onclick="prevQuestion()" class="flex items-center gap-2 px-5 py-2.5 rounded-xl font-medium text-slate-600 bg-white border border-slate-200 hover:bg-slate-50 hover:text-indigo-600 transition-all disabled:opacity-0 disabled:pointer-events-none shadow-sm">
                         <i data-feather="chevron-left" class="w-4 h-4"></i> Kembali
@@ -462,6 +471,9 @@
 
         let currentQuestionIndex = 0;
         let userAnswers = new Array(quizData.length).fill(null);
+        const attemptId = crypto.randomUUID();
+        let studentName = '';
+        let className = '';
 
         // Fungsi Transisi Layar
         function showScreen(screenId) {
@@ -478,6 +490,14 @@
         }
 
         function startQuiz() {
+            studentName = document.getElementById('student-name').value.trim();
+            className = document.getElementById('class-name').value.trim();
+            const status = document.getElementById('submit-status');
+            if (!studentName || !className) {
+                status.textContent = 'Isi nama dan kelas sebelum memulai.';
+                return;
+            }
+            status.textContent = '';
             showScreen('quiz-screen');
             renderQuestion();
         }
@@ -588,7 +608,7 @@
             feather.replace();
         }
 
-        function submitQuiz() {
+        async function submitQuiz() {
             const unanswered = userAnswers.filter(a => a === null).length;
             if (unanswered > 0) {
                 if (!confirm(`Terdapat ${unanswered} soal yang belum dijawab. Tetap kumpulkan?`)) {
@@ -596,9 +616,27 @@
                 }
             }
 
-            calculateResult();
-            showScreen('result-screen');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            const submitButton = document.getElementById('submit-btn');
+            const status = document.getElementById('submit-error');
+            submitButton.disabled = true;
+            submitButton.innerHTML = 'Mengirim jawaban…';
+            try {
+                const response = await fetch('/api/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ attemptId, studentName, className, answers: userAnswers })
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error || 'Jawaban belum berhasil dikirim.');
+                calculateResult();
+                showScreen('result-screen');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch (error) {
+                status.textContent = `${error.message} Periksa koneksi internet lalu coba kumpulkan lagi.`;
+                submitButton.disabled = false;
+                submitButton.innerHTML = '<i data-feather="check-circle" class="w-4 h-4"></i> Coba Kirim Lagi';
+                feather.replace();
+            }
         }
 
         function calculateResult() {
