@@ -1,6 +1,6 @@
 # Kuis Fungsi — Vercel + Firebase
 
-Halaman siswa tersedia di `/soal_mana_fungsi.html`. Dashboard hasil guru ada di `/guru.html`; jawaban terbaru diperbarui otomatis setiap 5 detik. API dan Firebase Admin SDK berjalan sebagai Vercel Functions. Kunci layanan Firebase hanya disimpan di environment Vercel, tidak di HTML.
+Halaman siswa tersedia di alamat utama `/` dari `index.html`. Dashboard hasil guru ada di `/guru.html`; jawaban terbaru diperbarui otomatis setiap 5 detik. API dan Firebase Admin SDK berjalan sebagai Vercel Functions. Kunci layanan Firebase hanya disimpan di environment Vercel, tidak di HTML.
 
 ## Menyiapkan Firebase
 
@@ -27,7 +27,7 @@ Halaman siswa tersedia di `/soal_mana_fungsi.html`. Dashboard hasil guru ada di 
    - `FIREBASE_DATABASE_URL`: URL Realtime Database dari Firebase Console.
    - `TEACHER_DASHBOARD_PASSWORD`: kata sandi panjang yang hanya dibagikan kepada guru.
 3. Deploy atau lakukan redeploy setelah ketiga variabel tersedia.
-4. Bagikan URL deployment kepada siswa dengan path `/soal_mana_fungsi.html`. Buka `/guru.html` untuk melihat jawaban.
+4. Bagikan URL utama deployment kepada siswa. Buka `/guru.html` untuk melihat jawaban.
 
 Jawaban dikirim hanya setelah siswa menekan **Kumpulkan**. Sistem memvalidasi format dan menghitung skor di server. Nama, kelas, jawaban, skor, dan waktu kirim disimpan di Firebase. Database menolak akses langsung dari browser; endpoint server memakai service account.
 
