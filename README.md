@@ -1,36 +1,16 @@
 # Kuis Fungsi — Vercel + Firebase
 
-Halaman siswa tersedia di alamat utama `/` dari `index.html`. Dashboard hasil guru ada di `/guru.html`; jawaban terbaru diperbarui otomatis setiap 5 detik. API dan Firebase Admin SDK berjalan sebagai Vercel Functions. Kunci layanan Firebase hanya disimpan di environment Vercel, tidak di HTML.
+Situs siswa: https://matematika-kelas-8.vercel.app/
 
-## Menyiapkan Firebase
+Dashboard guru: https://matematika-kelas-8.vercel.app/guru.html
 
-1. Project `kuis-fungsi-kelas8-20261022` dan Realtime Database di Singapura sudah dibuat. URL database: `https://kuis-fungsi-kelas8-20261022-default-rtdb.asia-southeast1.firebasedatabase.app`.
-2. Rules berikut sudah diterbitkan. Aturan ini menolak akses langsung dari browser:
+Jawaban hanya dikirim setelah siswa menekan **Kumpulkan**. Server mencatat waktu penerimaan, nama, kelas, jawaban, dan nilai ke Firebase Realtime Database. Dashboard memperbarui daftar setiap 5 detik, menampilkan waktu dalam WIB, serta menandai dan memberi nomor pada kiriman berulang dengan nama dan kelas yang sama. Pengiriman ulang akibat koneksi tidak membuat percobaan tambahan.
 
-   ```json
-   {
-     "rules": {
-       ".read": false,
-       ".write": false,
-       "quizSubmissions": { ".indexOn": ["createdAt"] }
-     }
-   }
-   ```
+## Konfigurasi aktif
 
-3. Di Project settings → Service accounts, buat private key service account. Simpan seluruh isi JSON-nya; jangan masukkan ke Git atau bagikan ke siswa.
+- Repository GitHub ini terhubung ke Vercel; push ke `main` memicu deployment.
+- Firebase project: `kuis-fungsi-kelas8-20261022`; database berada di `asia-southeast1`.
+- Firebase service account dan kata sandi dashboard disimpan sebagai environment variables Vercel, bukan di repository.
+- Database menolak akses langsung dari browser. API Vercel memakai Firebase Admin SDK.
 
-## Deploy ke Vercel
-
-1. Import repository GitHub ini di Vercel. Root directory biarkan di `/` dan biarkan Vercel mendeteksi project sebagai Node.js.
-2. Di Project → Settings → Environment Variables, tambahkan:
-   - `FIREBASE_SERVICE_ACCOUNT`: seluruh isi JSON service account dalam satu nilai.
-   - `FIREBASE_DATABASE_URL`: URL Realtime Database dari Firebase Console.
-   - `TEACHER_DASHBOARD_PASSWORD`: kata sandi panjang yang hanya dibagikan kepada guru.
-3. Deploy atau lakukan redeploy setelah ketiga variabel tersedia.
-4. Bagikan URL utama deployment kepada siswa. Buka `/guru.html` untuk melihat jawaban.
-
-Jawaban dikirim hanya setelah siswa menekan **Kumpulkan**. Sistem memvalidasi format dan menghitung skor di server. Nama, kelas, jawaban, skor, dan waktu kirim disimpan di Firebase. Database menolak akses langsung dari browser; endpoint server memakai service account.
-
-## Catatan dashboard
-
-Dashboard menampilkan dan mengekspor 100 jawaban terbaru. Jumlah terkumpul mencakup seluruh kiriman. Rata-rata nilai dihitung dari kiriman yang sedang ditampilkan.
+Dashboard menampilkan dan mengekspor 100 kiriman terbaru. Jumlah terkumpul mencakup seluruh kiriman, sedangkan rata-rata nilai dihitung dari kiriman yang sedang ditampilkan.

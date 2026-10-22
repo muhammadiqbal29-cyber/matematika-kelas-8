@@ -1,3 +1,4 @@
+const { createHash } = require('node:crypto');
 const { getDatabase } = require('../lib/firebaseAdmin');
 const ANSWER_KEY = [0, 2, 3, 2, 1, 0, 2, 1, 1, 1, 0, 1, 2, 2, 0, 1, 1, 2, 0, 2];
 
@@ -18,6 +19,9 @@ module.exports = async (req, res) => {
   }
 
   const correctCount = answers.reduce((total, answer, index) => total + (answer === ANSWER_KEY[index] ? 1 : 0), 0);
+  const normalizedName = studentName.trim().toLocaleLowerCase('id-ID').replace(/\s+/g, ' ');
+  const normalizedClass = className.trim().toLocaleLowerCase('id-ID').replace(/\s+/g, ' ');
+  const studentKey = createHash('sha256').update(`${normalizedClass}|${normalizedName}`).digest('hex');
   const submission = {
     attemptId,
     studentName: studentName.trim(),
@@ -29,11 +33,25 @@ module.exports = async (req, res) => {
   };
   try {
     const db = getDatabase();
-    const result = await db.ref(`quizSubmissions/${attemptId}`).transaction(current => current || submission, undefined, false);
+    const submissionRef = db.ref(`quizSubmissions/${attemptId}`);
+    const existing = await submissionRef.once('value');
+    if (existing.exists()) return json(res, 200, { ok: true, score: existing.val().score, attemptNo: existing.val().attemptNo });
+
+    const attemptResult = await db.ref(`studentAttempts/${studentKey}`).transaction(current => {
+      const state = current || {};
+      const attempts = state.attempts && typeof state.attempts === 'object' ? state.attempts : {};
+      if (attempts[attemptId]) return state;
+      const attemptNo = (Number(state.count) || 0) + 1;
+      return { count: attemptNo, attempts: { ...attempts, [attemptId]: attemptNo } };
+    }, undefined, false);
+    submission.attemptNo = attemptResult.snapshot.val().attempts[attemptId];
+
+    const result = await submissionRef.transaction(current => current || submission, undefined, false);
     if (result.committed) {
       await db.ref('quizSubmissionCount').transaction(count => (Number(count) || 0) + 1, undefined, false);
     }
-    return json(res, 200, { ok: true, score: submission.score });
+    const saved = result.snapshot.val();
+    return json(res, 200, { ok: true, score: saved.score, attemptNo: saved.attemptNo });
   } catch (error) {
     console.error('Firebase submission failed:', error.message);
     return json(res, 502, { error: 'Jawaban belum tersimpan. Periksa koneksi lalu coba kirim lagi.' });

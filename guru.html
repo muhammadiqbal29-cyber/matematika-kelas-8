@@ -33,14 +33,14 @@
       </div>
       <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="p-5 flex flex-wrap items-center justify-between gap-3 border-b border-slate-100">
-          <div><h2 class="font-bold text-lg">Jawaban siswa</h2><p class="text-xs text-slate-500">Diperbarui otomatis setiap 5 detik. Menampilkan 100 jawaban terbaru.</p></div>
+          <div><h2 class="font-bold text-lg">Jawaban siswa</h2><p class="text-xs text-slate-500">Waktu pengumpulan ditampilkan dalam WIB. Percobaan dari nama dan kelas yang sama diberi nomor. Diperbarui tiap 5 detik; menampilkan 100 kiriman terbaru.</p></div>
           <div class="flex gap-2"><button id="csv-button" class="px-4 py-2 rounded-lg border border-slate-300 text-sm font-semibold hover:bg-slate-50">Unduh CSV</button><button id="logout-button" class="px-4 py-2 rounded-lg border border-slate-300 text-sm font-semibold hover:bg-slate-50">Keluar</button></div>
         </div>
         <p id="load-error" role="status" class="px-5 pt-3 text-sm text-rose-600"></p>
         <div class="overflow-x-auto">
-          <table class="w-full text-sm text-left min-w-[850px]">
-            <thead class="bg-slate-50 text-slate-500"><tr><th class="px-4 py-3">Waktu</th><th class="px-4 py-3">Nama</th><th class="px-4 py-3">Kelas</th><th class="px-4 py-3">Benar</th><th class="px-4 py-3">Nilai</th><th class="px-4 py-3">Jawaban (1–20)</th></tr></thead>
-            <tbody id="rows"><tr><td colspan="6" class="px-4 py-8 text-center text-slate-400">Memuat jawaban…</td></tr></tbody>
+          <table class="w-full text-sm text-left min-w-[1000px]">
+            <thead class="bg-slate-50 text-slate-500"><tr><th class="px-4 py-3">Waktu kumpul (WIB)</th><th class="px-4 py-3">Nama</th><th class="px-4 py-3">Kelas</th><th class="px-4 py-3">Percobaan</th><th class="px-4 py-3">Benar</th><th class="px-4 py-3">Nilai</th><th class="px-4 py-3">Jawaban (1–20)</th></tr></thead>
+            <tbody id="rows"><tr><td colspan="7" class="px-4 py-8 text-center text-slate-400">Memuat jawaban…</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -58,19 +58,30 @@
       return Array.isArray(answers) ? answers.map((answer, index) => `${index + 1}:${answer === null ? '—' : String.fromCharCode(65 + answer)}`).join(' · ') : '';
     }
 
+    function formatWib(timestamp) {
+      return `${new Intl.DateTimeFormat('id-ID', { timeZone: 'Asia/Jakarta', dateStyle: 'medium', timeStyle: 'medium' }).format(new Date(timestamp))} WIB`;
+    }
+
     function render(data) {
       latestSubmissions = data.submissions || [];
+      const attemptCounts = new Map();
+      for (const item of [...latestSubmissions].reverse()) {
+        const studentKey = `${(item.className || '').trim().toLocaleLowerCase('id-ID').replace(/\s+/g, ' ')}|${(item.studentName || '').trim().toLocaleLowerCase('id-ID').replace(/\s+/g, ' ')}`;
+        const inferredNo = (attemptCounts.get(studentKey) || 0) + 1;
+        attemptCounts.set(studentKey, inferredNo);
+        item.displayAttemptNo = Number(item.attemptNo) || inferredNo;
+      }
       document.getElementById('total').textContent = data.total ?? latestSubmissions.length;
       const average = latestSubmissions.length ? Math.round(latestSubmissions.reduce((sum, item) => sum + (Number(item.score) || 0), 0) / latestSubmissions.length) : null;
       document.getElementById('average').textContent = average === null ? '—' : `${average}/100`;
-      document.getElementById('updated').textContent = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      document.getElementById('updated').textContent = formatWib(Date.now());
       rows.replaceChildren();
       if (!latestSubmissions.length) {
-        const tr = document.createElement('tr'); const td = document.createElement('td'); td.colSpan = 6; td.className = 'px-4 py-8 text-center text-slate-400'; td.textContent = 'Belum ada jawaban masuk.'; tr.append(td); rows.append(tr); return;
+        const tr = document.createElement('tr'); const td = document.createElement('td'); td.colSpan = 7; td.className = 'px-4 py-8 text-center text-slate-400'; td.textContent = 'Belum ada jawaban masuk.'; tr.append(td); rows.append(tr); return;
       }
       for (const item of latestSubmissions) {
-        const tr = document.createElement('tr'); tr.className = 'border-t border-slate-100 align-top';
-        const values = [new Date(item.createdAt).toLocaleString('id-ID'), item.studentName || '', item.className || '', `${item.correctCount ?? 0}/20`, `${item.score ?? 0}`, answerSummary(item.answers)];
+        const tr = document.createElement('tr'); tr.className = `border-t border-slate-100 align-top ${item.displayAttemptNo > 1 ? 'bg-amber-50' : ''}`;
+        const values = [formatWib(item.createdAt), item.studentName || '', item.className || '', `Ke-${item.displayAttemptNo}`, `${item.correctCount ?? 0}/20`, `${item.score ?? 0}`, answerSummary(item.answers)];
         for (const value of values) { const td = document.createElement('td'); td.className = 'px-4 py-3'; td.textContent = value; tr.append(td); }
         rows.append(tr);
       }
@@ -93,7 +104,7 @@
     document.getElementById('logout-button').addEventListener('click', () => { clearInterval(pollTimer); sessionStorage.removeItem('teacherPassword'); password = ''; dashboard.classList.add('hidden'); loginPanel.classList.remove('hidden'); });
     document.getElementById('csv-button').addEventListener('click', () => {
       const esc = value => `"${String(value ?? '').replaceAll('"', '""')}"`;
-      const data = [['Waktu', 'Nama', 'Kelas', 'Benar', 'Nilai', 'Jawaban'], ...latestSubmissions.map(item => [new Date(item.createdAt).toLocaleString('id-ID'), item.studentName, item.className, `${item.correctCount}/20`, item.score, answerSummary(item.answers)])];
+      const data = [['Waktu kumpul (WIB)', 'Nama', 'Kelas', 'Percobaan', 'Benar', 'Nilai', 'Jawaban'], ...latestSubmissions.map(item => [formatWib(item.createdAt), item.studentName, item.className, `Ke-${item.displayAttemptNo ?? 1}`, `${item.correctCount}/20`, item.score, answerSummary(item.answers)])];
       const csv = '\uFEFF' + data.map(line => line.map(esc).join(',')).join('\r\n');
       const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' })); const a = document.createElement('a'); a.href = url; a.download = 'hasil-kuis-fungsi.csv'; a.click(); URL.revokeObjectURL(url);
     });
